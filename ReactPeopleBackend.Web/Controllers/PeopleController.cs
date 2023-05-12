@@ -25,7 +25,6 @@ namespace ReactPeopleBackend.Web.Controllers
         [Route("add")]
         public void AddPerson(Person person)
         {
-            //Thread.Sleep(2000);
             var repo = new PersonRepository(_connectionString);
             repo.AddPerson(person);
         }

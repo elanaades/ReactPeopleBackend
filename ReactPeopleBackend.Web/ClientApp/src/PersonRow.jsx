@@ -1,13 +1,13 @@
 ﻿import React from 'react';
 
-export default function PersonRow({ person, onDeleteClick, onCheckBoxSelect, isSelected, onEditClick }) {
+export default function PersonRow({ person, onDeleteClick, onCheckBoxSelect, isSelected, onEditClick, selectAll }) {
 
     const { firstName, lastName, age } = person;
 
     return (
 
-        <tr>
-            <td>
+        <tr style = {{ textAlign: "center" } } >
+            <td style={{ textAlign: "center" }}>
                 <input className="form-check-input" style={{ transform: "scale(1.5)" }} type="checkbox" checked={isSelected}                    onChange={onCheckBoxSelect} />
             </td>
             <td>{firstName}</td>

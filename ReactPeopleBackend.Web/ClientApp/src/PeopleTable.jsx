@@ -17,7 +17,8 @@ class PeopleTable extends React.Component {
         isLoading: true,
         isAdding: false,
         isEditing: false,
-        idToUpdate: ''
+        idToUpdate: '',
+        selectAll: false
     }
 
     componentDidMount = () => {
@@ -28,18 +29,6 @@ class PeopleTable extends React.Component {
         axios.get('/api/people/getall').then(res => {
             this.setState({ people: res.data, isLoading: false });
         });
-    }
-
-   
-    onCheckBoxSelect = (id) => {
-        const { selectedPeopleById } = this.state;
-
-        if (selectedPeopleById.includes(id)) {
-            this.setState({ selectedPeopleById: selectedPeopleById.filter(s => s !== id) })
-        }
-        else {
-            this.setState({ selectedPeopleById: [...selectedPeopleById, id] })
-        }   
     }
 
     onTextChange = e => {
@@ -65,14 +54,14 @@ class PeopleTable extends React.Component {
     }
 
     onEditClick = (person) => {
-        
+
         this.setState({
             isEditing: true,
             idToUpdate: person.id,
             person: {
                 firstName: person.firstName,
                 lastName: person.lastName,
-                age: person.age 
+                age: person.age
             }
         })
     }
@@ -126,22 +115,43 @@ class PeopleTable extends React.Component {
         axios.post('/api/people/deleteall', { ids: [...selectedPeopleById] }).then(() => {
             this.getAllPeople();
         });
+        this.setState({ selectAll: false })
     }
 
-    onCheckAllClick = () => {
-        const ids = this.state.people.map(p => p.id);
-        this.setState({ selectedPeopleById: ids });
+
+    onCheckBoxSelect = (id) => {
+        const { selectedPeopleById, people } = this.state;
+
+        if (selectedPeopleById.includes(id)) {
+            this.setState({ selectedPeopleById: selectedPeopleById.filter(s => s !== id) })
+            this.setState({ selectAll: false });
+        }
+        else {
+            this.setState({ selectedPeopleById: [...selectedPeopleById, id] })
+            if (selectedPeopleById.length === people.length - 1) {
+                this.setState({ selectAll: true })
+            }
+        } 
     }
 
-    onUncheckAllClick = () => {
-        this.setState({ selectedPeopleById: [] });
+    onCheckBoxAllClick = () => {
+        this.setState({ selectAll: !this.state.selectAll }, () => {
+            if (this.state.selectAll) {
+                const ids = this.state.people.map(p => p.id);
+                this.setState({ selectedPeopleById: ids });
+            }
+            else {
+                this.setState({ selectedPeopleById: [] });
+            }
+        });
+
     }
 
     generateTable = () => {
-        const { isLoading, people, selectedPeopleById } = this.state;
+        const { isLoading, people, selectedPeopleById, selectAll } = this.state;
 
         //if (isLoading) {
-        //    return <h1>Loading...</h1>
+        //    return <h1> Loading...</h1>
         //}
 
         return people.map(p => <PersonRow
@@ -151,16 +161,16 @@ class PeopleTable extends React.Component {
             onCheckBoxSelect={() => this.onCheckBoxSelect(p.id)}
             isSelected={selectedPeopleById.includes(p.id)}
             onEditClick={() => this.onEditClick(p)}
+            selectAll={selectAll}
         />)
     }
 
     render() {
 
-        const { isAdding, isEditing } = this.state;
-        const onDeleteAllClick = this.onDeleteAllClick;
-        const onCheckAllClick = this.onCheckAllClick;
-        const onUncheckAllClick = this.onUncheckAllClick;
+        const { isAdding, isEditing, selectAll } = this.state;
         const { firstName, lastName, age, id } = this.state.person;
+        const onDeleteAllClick = this.onDeleteAllClick;
+        const onCheckBoxAllClick = this.onCheckBoxAllClick;
         const onCancelClick = this.onCancelClick;
         const onUpdateClick = this.onUpdateClick;
 
@@ -179,17 +189,21 @@ class PeopleTable extends React.Component {
                     isEditing={isEditing}
                     onUpdateClick={onUpdateClick}
                     onCancelClick={onCancelClick}
-                    
+
                 />
 
                 <div className="container mt-5">
                     <table className="table table-hover table-striped table-bordered">
-                        <thead>
+                        <thead style={{ textAlign: "Center" }}>
                             <tr>
                                 <th style={{ width: "15%" }}>
-                                    <button className="btn btn-danger w-100" onClick={onDeleteAllClick}>Delete All</button>
-                                    <button className="btn btn-outline-danger w-100 mt-2" onClick={onCheckAllClick}>Check All</button>
-                                    <button className="btn btn-outline-danger w-100 mt-2" onClick={onUncheckAllClick}>Uncheck All</button>
+                                    <button className="btn btn-danger w-100" style={{ marginBottom: "15px" }} onClick={onDeleteAllClick}>Delete All</button>
+                                    <input className="form-check-input"
+                                        style={{ transform: "scale(1.5)" }}
+                                        type="checkbox"
+                                        onChange={onCheckBoxAllClick}
+                                        checked={selectAll}
+                                    />
                                 </th>
                                 <th>First Name</th>
                                 <th>Last Name</th>
